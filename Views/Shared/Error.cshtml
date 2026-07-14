@@ -1,0 +1,17 @@
+@{
+    ViewData["Title"] = "Error";
+}
+
+<div class="container mt-5">
+    <div class="alert alert-danger">
+        <h1 class="h3">Error</h1>
+        <p>An error occurred while processing your request.</p>
+        @if (ViewData["RequestId"] is string requestId)
+        {
+            <p>
+                <strong>Request ID:</strong> <code>@requestId</code>
+            </p>
+        }
+        <a href="/" class="btn btn-outline-danger mt-2">Go to Dashboard</a>
+    </div>
+</div>

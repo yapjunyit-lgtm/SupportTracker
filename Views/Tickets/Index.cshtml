@@ -1,0 +1,113 @@
+@model List<SupportTracker.Models.Ticket>
+
+@{
+    ViewData["Title"] = "Tickets";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">Tickets</h1>
+    <a asp-action="Create" class="btn btn-primary">New Ticket</a>
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @success
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<form method="get" class="card mb-4">
+    <div class="card-body">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label small text-muted">Search</label>
+                <input type="text" name="search" class="form-control" placeholder="Search by title..."
+                       value="@ViewBag.Search" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted">Status</label>
+                <select name="status" class="form-select" asp-items="Html.GetEnumSelectList<SupportTracker.Models.TicketStatus>()">
+                    <option value="">All</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted">Priority</label>
+                <select name="priority" class="form-select" asp-items="Html.GetEnumSelectList<SupportTracker.Models.TicketPriority>()">
+                    <option value="">All</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-outline-primary w-100">Filter</button>
+            </div>
+            @if (!string.IsNullOrEmpty(ViewBag.Search) || !string.IsNullOrEmpty(ViewBag.StatusFilter) || !string.IsNullOrEmpty(ViewBag.PriorityFilter))
+            {
+                <div class="col-12 mt-1">
+                    <a asp-action="Index" class="btn btn-sm btn-link text-decoration-none">Clear filters</a>
+                </div>
+            }
+        </div>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Assigned To</th>
+                <th>Created</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">No tickets found matching your filters.</td>
+                </tr>
+            }
+            @foreach (var ticket in Model)
+            {
+                <tr>
+                    <td class="text-muted">#@ticket.Id</td>
+                    <td>
+                        <a asp-action="Detail" asp-route-id="@ticket.Id" class="text-decoration-none fw-medium">
+                            @ticket.Title
+                        </a>
+                    </td>
+                    <td><span class="badge @StatusBadge(ticket.Status)">@ticket.Status</span></td>
+                    <td><span class="badge @PriorityBadge(ticket.Priority)">@ticket.Priority</span></td>
+                    <td>@(ticket.AssignedTo?.FullName ?? "—")</td>
+                    <td class="text-muted">@ticket.CreatedAt.ToString("MMM dd, yyyy")</td>
+                    <td class="text-end">
+                        <a asp-action="Edit" asp-route-id="@ticket.Id" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@functions {
+    string StatusBadge(SupportTracker.Models.TicketStatus status) => status switch
+    {
+        SupportTracker.Models.TicketStatus.Open => "bg-danger",
+        SupportTracker.Models.TicketStatus.InProgress => "bg-warning text-dark",
+        SupportTracker.Models.TicketStatus.Resolved => "bg-success",
+        SupportTracker.Models.TicketStatus.Closed => "bg-secondary",
+        _ => "bg-light text-dark"
+    };
+
+    string PriorityBadge(SupportTracker.Models.TicketPriority priority) => priority switch
+    {
+        SupportTracker.Models.TicketPriority.Critical => "bg-dark",
+        SupportTracker.Models.TicketPriority.High => "bg-danger",
+        SupportTracker.Models.TicketPriority.Medium => "bg-info text-dark",
+        SupportTracker.Models.TicketPriority.Low => "bg-light text-dark",
+        _ => "bg-light text-dark"
+    };
+}

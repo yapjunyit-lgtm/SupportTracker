@@ -1,0 +1,115 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">Dashboard</h1>
+    <a asp-controller="Tickets" asp-action="Create" class="btn btn-primary">New Ticket</a>
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @success
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row mb-4">
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card border-0 bg-primary text-white">
+            <div class="card-body text-center">
+                <h3 class="display-6 mb-0">@ViewBag.TotalTickets</h3>
+                <p class="mb-0 opacity-75">Total Tickets</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card border-0 bg-danger text-white">
+            <div class="card-body text-center">
+                <h3 class="display-6 mb-0">@ViewBag.OpenTickets</h3>
+                <p class="mb-0 opacity-75">Open</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card border-0 bg-warning text-dark">
+            <div class="card-body text-center">
+                <h3 class="display-6 mb-0">@ViewBag.InProgressTickets</h3>
+                <p class="mb-0 opacity-75">In Progress</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card border-0 bg-success text-white">
+            <div class="card-body text-center">
+                <h3 class="display-6 mb-0">@ViewBag.ResolvedTickets</h3>
+                <p class="mb-0 opacity-75">Resolved</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-medium">Recent Activity</span>
+        <a asp-controller="Tickets" asp-action="Index" class="btn btn-sm btn-outline-primary">View All</a>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-3">Ticket</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                    <th>Assigned To</th>
+                    <th>Updated</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (ViewBag.RecentTickets is List<SupportTracker.Models.Ticket> recent && recent.Any())
+                {
+                    @foreach (var ticket in recent)
+                    {
+                        <tr>
+                            <td class="ps-3">
+                                <a asp-controller="Tickets" asp-action="Detail" asp-route-id="@ticket.Id"
+                                   class="text-decoration-none fw-medium">@ticket.Title</a>
+                            </td>
+                            <td><span class="badge @StatusBadge(ticket.Status)">@ticket.Status</span></td>
+                            <td><span class="badge @PriorityBadge(ticket.Priority)">@ticket.Priority</span></td>
+                            <td>@(ticket.AssignedTo?.FullName ?? "—")</td>
+                            <td class="text-muted">@ticket.UpdatedAt.ToString("MMM dd, HH:mm")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-3 ps-3">No tickets yet.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@functions {
+    string StatusBadge(SupportTracker.Models.TicketStatus status) => status switch
+    {
+        SupportTracker.Models.TicketStatus.Open => "bg-danger",
+        SupportTracker.Models.TicketStatus.InProgress => "bg-warning text-dark",
+        SupportTracker.Models.TicketStatus.Resolved => "bg-success",
+        SupportTracker.Models.TicketStatus.Closed => "bg-secondary",
+        _ => "bg-light text-dark"
+    };
+
+    string PriorityBadge(SupportTracker.Models.TicketPriority priority) => priority switch
+    {
+        SupportTracker.Models.TicketPriority.Critical => "bg-dark",
+        SupportTracker.Models.TicketPriority.High => "bg-danger",
+        SupportTracker.Models.TicketPriority.Medium => "bg-info text-dark",
+        SupportTracker.Models.TicketPriority.Low => "bg-light text-dark",
+        _ => "bg-light text-dark"
+    };
+}
